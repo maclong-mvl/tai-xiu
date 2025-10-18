@@ -1,0 +1,302 @@
+/* General Styling */
+:root {
+  --bg-color: #f4f7f9;
+  --text-color: #333;
+  --primary-color: #007bff;
+  --primary-hover: #0056b3;
+  --border-color: #ddd;
+  --win-color: #28a745;
+  --loss-color: #dc3545;
+  --table-header-bg: #e9ecef;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 20px 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+header {
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  color: var(--primary-color);
+  margin-bottom: 5px;
+}
+
+/* Controls Section */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.input-group, .input-group-derived {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label, .input-group-derived label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.input-group input {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.input-group-derived span {
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+
+.controls button {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.controls button:hover {
+  background-color: var(--primary-hover);
+}
+
+.controls button:disabled {
+  background-color: #a0c7ff;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: var(--loss-color);
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+}
+
+/* Results Section */
+.results-area {
+  margin-top: 20px;
+}
+
+.session-result {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #fff;
+}
+
+.session-result h2 {
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.session-result h2 span {
+  font-size: 1rem;
+  font-weight: normal;
+  color: #555;
+  margin-left: 10px;
+}
+
+.win {
+  color: var(--win-color);
+}
+
+.loss {
+  color: var(--loss-color);
+}
+
+.win-text {
+  color: var(--win-color);
+  font-weight: bold;
+}
+
+.loss-text {
+  color: var(--loss-color);
+  font-weight: bold;
+}
+
+details > summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-top: 10px;
+}
+
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+thead th {
+  background-color: var(--table-header-bg);
+  position: sticky;
+  top: 0;
+  font-size: 14px;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+/* Summary Result Box */
+.summary-result {
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+
+.summary-result h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--text-color);
+  font-size: 1.2rem;
+}
+
+.summary-result p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.summary-result p span {
+  font-weight: normal;
+  font-size: 1.1rem;
+  margin-right: 10px;
+  color: #555;
+}
+
+/* Loading Overlay & Spinner */
+.controls-wrapper {
+  position: relative;
+  border-radius: 8px;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  border-radius: 8px;
+  backdrop-filter: blur(2px);
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: var(--primary-color);
+  animation: spin 1s ease infinite;
+}
+
+.loading-overlay p {
+  margin-top: 10px;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* Improved Summary Box */
+.summary-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+  text-align: left;
+  margin-top: 15px;
+}
+
+.summary-details p {
+  font-size: 1rem;
+  font-weight: normal;
+  background-color: #fff;
+  padding: 10px 15px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  margin: 0;
+}
+
+.summary-details p span {
+  font-weight: bold;
+  color: #555;
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.9rem;
+}
