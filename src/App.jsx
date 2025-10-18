@@ -2,19 +2,19 @@ import { useCallback, useMemo, useState } from 'react';
 import './App.css';
 
 // ===================================================================================
-// LÕI MÔ PHỎNG: Cập nhật với Martingale Giới Hạn (Reset sau 4 lần thua)
+// LÕI MÔ PHỎNG: Cập nhật để nhận "Giới Hạn Chuỗi Thua" từ bên ngoài
 // ===================================================================================
-const runSingleSessionSimulation = (initialCapital, baseBet) => {
-  // 1. Nền tảng Stop-Loss/Take-Profit không đổi
-  const takeProfitTarget = initialCapital * 1.25;
-  const stopLossTarget = initialCapital * 0.75;
+const runSingleSessionSimulation = (initialCapital, baseBet, takeProfitPercentage, stopLossPercentage, lossStreakLimit) => {
+  // 1. Nền tảng Stop-Loss/Take-Profit linh hoạt
+  const takeProfitTarget = initialCapital * (1 + takeProfitPercentage / 100);
+  const stopLossTarget = initialCapital * (1 - stopLossPercentage / 100);
 
   // 2. KHỞI TẠO BIẾN TRẠNG THÁI
   let currentCapital = initialCapital;
   let vanNumber = 0;
   const detailedLog = [];
   let currentBetAmount = baseBet;
-  let consecutiveLosses = 0; // Biến để đếm chuỗi thua
+  let consecutiveLosses = 0;
 
   // 3. VÒNG LẶP MÔ PHỎNG
   while (currentCapital > stopLossTarget && currentCapital < takeProfitTarget) {
@@ -24,7 +24,7 @@ const runSingleSessionSimulation = (initialCapital, baseBet) => {
     if (currentBetAmount > currentCapital) {
       note = 'Không đủ vốn để cược. Phiên dừng lại.';
       detailedLog.push({
-        van: vanNumber, mode: "Martingale (Giới Hạn 4)", amount: currentBetAmount,
+        van: vanNumber, mode: `Martingale (Reset @${lossStreakLimit} thua)`, amount: currentBetAmount,
         result: 'Không Thể Cược', capitalAfter: currentCapital, note: note,
       });
       break; 
@@ -32,41 +32,36 @@ const runSingleSessionSimulation = (initialCapital, baseBet) => {
 
     const isWin = Math.random() < 0.5;
     const resultText = isWin ? 'Thắng' : 'Thua';
-
-    // Lưu lại mức cược của ván này trước khi nó thay đổi
     const betPlaced = currentBetAmount;
 
     if (isWin) {
       currentCapital += betPlaced;
-      consecutiveLosses = 0; // Reset chuỗi thua khi thắng
+      consecutiveLosses = 0;
     } else {
       currentCapital -= betPlaced;
-      consecutiveLosses++; // Tăng biến đếm chuỗi thua
+      consecutiveLosses++;
     }
 
     // CẬP NHẬT MỨC CƯỢC CHO VÁN SAU THEO QUY TẮC MỚI
     if (isWin) {
-      // Thắng -> Quay về mức cược ban đầu
       currentBetAmount = baseBet;
       note = `Thắng! Quay về cược cơ bản.`;
     } else {
-      // Thua -> Kiểm tra chuỗi thua
-      if (consecutiveLosses >= 4) {
-        // **ĐIỂM THAY ĐỔI QUAN TRỌNG**
-        // Nếu thua 4 lần liên tiếp, quay về mức cược ban đầu
+      // **ĐIỂM THAY ĐỔI QUAN TRỌNG**
+      if (consecutiveLosses >= lossStreakLimit) {
+        // Nếu thua đủ số lần trong giới hạn, quay về mức cược ban đầu
         currentBetAmount = baseBet;
-        note = `Thua 4 lần liên tiếp! Reset về cược cơ bản.`;
-        consecutiveLosses = 0; // Reset lại biến đếm
+        note = `Thua ${lossStreakLimit} lần liên tiếp! Reset về cược cơ bản.`;
+        consecutiveLosses = 0;
       } else {
-        // Nếu chưa đủ 4 lần, tiếp tục gấp đôi
+        // Nếu chưa đủ, tiếp tục gấp đôi
         currentBetAmount = betPlaced * 2;
         note = `Thua! Gấp đôi cược ván sau lên ${new Intl.NumberFormat('vi-VN').format(currentBetAmount)}`;
       }
     }
 
-    // TẠO THÔNG TIN CHUỖI ĐỂ HIỂN THỊ
     let streakInfo = '';
-    if (consecutiveLosses > 1 && consecutiveLosses < 4) { // Chỉ hiện chuỗi thua khi nó đang diễn ra
+    if (consecutiveLosses > 1 && consecutiveLosses < lossStreakLimit) {
         streakInfo = `Chuỗi thua: ${consecutiveLosses}`;
     }
 
@@ -74,7 +69,7 @@ const runSingleSessionSimulation = (initialCapital, baseBet) => {
 
     detailedLog.push({
       van: vanNumber,
-      mode: "Martingale (Giới Hạn 4)",
+      mode: `Martingale (Reset @${lossStreakLimit} thua)`,
       amount: betPlaced,
       result: resultText,
       capitalAfter: currentCapital,
@@ -97,16 +92,21 @@ const runSingleSessionSimulation = (initialCapital, baseBet) => {
 };
 
 function App() {
-  const [initialCapital, setInitialCapital] = useState(10000000);
-  const [baseBet, setBaseBet] = useState(500000);
-  const [sessionsPerDay, setSessionsPerDay] = useState(1);
+  const [initialCapital, setInitialCapital] = useState(1000000);
+  const [baseBet, setBaseBet] = useState(20000);
+  const [takeProfitPercentage, setTakeProfitPercentage] = useState(25);
+  const [stopLossPercentage, setStopLossPercentage] = useState(25);
+  // State mới cho giới hạn chuỗi thua
+  const [lossStreakLimit, setLossStreakLimit] = useState(3); 
+  const [sessionsPerDay, setSessionsPerDay] = useState(5);
   const [numDays, setNumDays] = useState(1);
+  
   const [simulationResults, setSimulationResults] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState('');
 
   const handleStartSimulation = useCallback(() => {
-    if (initialCapital <= 0 || sessionsPerDay <= 0 || baseBet <= 0 || numDays <= 0) {
+    if (initialCapital <= 0 || sessionsPerDay <= 0 || baseBet <= 0 || numDays <= 0 || takeProfitPercentage <= 0 || stopLossPercentage <= 0 || lossStreakLimit <= 0) {
       setError('Tất cả các trường nhập liệu phải lớn hơn 0.');
       return;
     }
@@ -123,10 +123,10 @@ function App() {
         let capitalForNextSession = capitalForNextDay;
 
         for (let session = 1; session <= sessionsPerDay; session++) {
-          if(capitalForNextSession <= baseBet) {
-            break;
-          }
-          const sessionResult = runSingleSessionSimulation(capitalForNextSession, baseBet);
+          if(capitalForNextSession <= baseBet) break;
+          
+          // Truyền giới hạn chuỗi thua vào hàm mô phỏng
+          const sessionResult = runSingleSessionSimulation(capitalForNextSession, baseBet, takeProfitPercentage, stopLossPercentage, lossStreakLimit);
           dayResults.sessions.push({ ...sessionResult, sessionNumber: session });
           capitalForNextSession = sessionResult.finalCapital;
         }
@@ -142,7 +142,7 @@ function App() {
       setSimulationResults(allDaysResults);
       setIsRunning(false);
     }, 100);
-  }, [initialCapital, baseBet, sessionsPerDay, numDays]);
+  }, [initialCapital, baseBet, sessionsPerDay, numDays, takeProfitPercentage, stopLossPercentage, lossStreakLimit]);
   
   const summary = useMemo(() => {
     if (simulationResults.length === 0) return null;
@@ -154,8 +154,8 @@ function App() {
   return (
     <div className="container">
       <header>
-        <h1>Mô Phỏng Hệ Thống Martingale (Giới Hạn 4)</h1>
-        <p className="warning-text">⚠️ CẢNH BÁO: Reset về mức cược cơ bản sau 4 lần thua liên tiếp. An toàn hơn Martingale gốc nhưng vẫn rủi ro.</p>
+        <h1>Mô Phỏng Hệ Thống Martingale (Tùy Chỉnh)</h1>
+        <p className="warning-text">⚠️ Tùy chỉnh các ngưỡng và giới hạn chuỗi thua để kiểm tra độ hiệu quả của chiến lược.</p>
       </header>
       
       <div className="controls-wrapper">
@@ -173,6 +173,19 @@ function App() {
           <div className="input-group">
             <label htmlFor="baseBet">Mức cược ban đầu</label>
             <input type="number" id="baseBet" value={baseBet} onChange={(e) => setBaseBet(Number(e.target.value))} />
+          </div>
+          <div className="input-group">
+            <label htmlFor="takeProfit">Chốt Lời (%)</label>
+            <input type="number" id="takeProfit" value={takeProfitPercentage} onChange={(e) => setTakeProfitPercentage(Number(e.target.value))} />
+          </div>
+          <div className="input-group">
+            <label htmlFor="stopLoss">Chốt Lỗ (%)</label>
+            <input type="number" id="stopLoss" value={stopLossPercentage} onChange={(e) => setStopLossPercentage(Number(e.target.value))} />
+          </div>
+           {/* Thêm input Giới Hạn Chuỗi Thua */}
+          <div className="input-group">
+            <label htmlFor="lossStreakLimit">Reset sau (lần thua)</label>
+            <input type="number" id="lossStreakLimit" value={lossStreakLimit} onChange={(e) => setLossStreakLimit(Number(e.target.value))} />
           </div>
           <div className="input-group">
             <label htmlFor="sessionsPerDay">Số phiên mỗi ngày</label>
