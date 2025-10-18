@@ -1,247 +1,219 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 import './App.css';
 
-// ===================================================================================
-// LÕI MÔ PHỎNG: Vẫn giữ nguyên logic cho một phiên chơi
-// ===================================================================================
-const runSingleSessionSimulation = (initialCapital, baseBet) => {
-  const takeProfitTarget = initialCapital * 1.25;
-  const stopLossTarget = initialCapital * 0.75;
-
-  let currentCapital = initialCapital;
-  let vanNumber = 0;
-  let betMode = 'Phòng Thủ';
-  let consecutiveWins = 0;
-  const detailedLog = [];
-  let totalLossAmount = 0; // Biến mới để theo dõi tiền thua
-
-  while (currentCapital > stopLossTarget && currentCapital < takeProfitTarget) {
-    vanNumber++;
-    let currentBetAmount = baseBet;
-    let note = '';
-
-    if (consecutiveWins >= 2) {
-      betMode = 'Tấn Công';
-      if (consecutiveWins === 2) {
-        currentBetAmount = baseBet * 1.5;
-        note = 'Thắng 2 liên tiếp -> Bật Tấn Công!';
-      } else {
-        currentBetAmount = baseBet * 2;
-        note = 'Duy trì mức cược Tấn Công.';
-      }
-    } else {
-      betMode = 'Phòng Thủ';
-    }
-
-    const isWin = Math.random() < 0.5;
-    const resultText = isWin ? 'Thắng' : 'Thua';
-
-    if (isWin) {
-      currentCapital += currentBetAmount;
-      consecutiveWins++;
-    } else {
-      currentCapital -= currentBetAmount;
-      totalLossAmount += currentBetAmount; // Cộng dồn tiền thua
-      if (betMode === 'Tấn Công') {
-        note = 'Thua -> Quay về Phòng Thủ.';
-      }
-      consecutiveWins = 0;
-    }
-
-    detailedLog.push({
-      van: vanNumber,
-      mode: betMode,
-      amount: currentBetAmount,
-      result: resultText,
-      capitalAfter: currentCapital,
-      note: note,
-    });
-
-    if (vanNumber > 1000) break;
-  }
-
-  const finalResult = currentCapital >= takeProfitTarget ? 'Chốt Lời' : 'Dừng Lỗ';
-  const profitOrLoss = currentCapital - initialCapital;
-
-  return {
-    finalResult,
-    finalCapital: currentCapital,
-    profitOrLoss,
-    totalBets: vanNumber,
-    detailedLog,
-    sessionTotalLoss: totalLossAmount, // Trả về tổng tiền thua của phiên
-  };
+// Hàm định dạng tiền tệ VNĐ
+const formatCurrency = (number) => {
+  if (isNaN(number)) return "0 VNĐ";
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
 };
 
 function App() {
-  const [initialCapital, setInitialCapital] = useState(1000000);
-  const [baseBet, setBaseBet] = useState(20000);
-  const [sessionsPerDay, setSessionsPerDay] = useState(5);
-  const [numDays, setNumDays] = useState(10);
-  const [simulationResults, setSimulationResults] = useState([]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [error, setError] = useState('');
+  // --- State cho các ô nhập liệu ---
+  const [strategy, setStrategy] = useState('paroli-1-3-6'); // Mặc định là chiến lược mới
+  const [initialCapital, setInitialCapital] = useState(10000000);
+  const [baseBet, setBaseBet] = useState(100000);
+  const [delta, setDelta] = useState(500000);
+  const [sessionsPerDay, setSessionsPerDay] = useState(50);
+  const [totalDays, setTotalDays] = useState(10);
 
-  const handleStartSimulation = useCallback(() => {
-    if (initialCapital <= 0 || sessionsPerDay <= 0 || baseBet <= 0 || numDays <= 0) {
-      setError('Tất cả các trường nhập liệu phải lớn hơn 0.');
-      return;
-    }
-    if (baseBet > initialCapital * 0.05) {
-      setError('Cảnh báo: Mức cược cơ bản nên nhỏ hơn 5% tổng vốn để đảm bảo an toàn.');
-      return;
-    }
-    setError('');
-    setIsRunning(true);
-    setSimulationResults([]);
+  // --- State cho kết quả mô phỏng ---
+  const [simulationResult, setSimulationResult] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-    // Dùng setTimeout để UI kịp cập nhật hiệu ứng loading trước khi bắt đầu tính toán nặng
+  const handleSimulate = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setSimulationResult(null);
+    setHistory([]);
+
     setTimeout(() => {
-      const allDaysResults = [];
-      let capitalForNextDay = initialCapital;
+      // --- Khởi tạo các biến mô phỏng ---
+      const capital = Number(initialCapital);
+      const betUnit = Number(baseBet);
+      const deltaValue = Number(delta);
+      const totalSessions = Number(sessionsPerDay) * Number(totalDays);
 
-      for (let day = 1; day <= numDays; day++) {
-        const dayResults = {
-          dayNumber: day,
-          startOfDayCapital: capitalForNextDay,
-          sessions: [],
-          dayTotalLoss: 0,
-        };
-        
-        let capitalForNextSession = capitalForNextDay;
+      let currentCapital = capital;
+      let simulationHistory = [];
 
-        for (let session = 1; session <= sessionsPerDay; session++) {
-          if(capitalForNextSession <= 0) break;
-          
-          const sessionResult = runSingleSessionSimulation(capitalForNextSession, baseBet);
-          dayResults.sessions.push({ ...sessionResult, sessionNumber: session });
-          dayResults.dayTotalLoss += sessionResult.sessionTotalLoss;
-          capitalForNextSession = sessionResult.finalCapital;
+      let sequenceStep = 0; // Vị trí trong chuỗi cược
+      let netProfit = 0;
+      let currentBetUnits = 1;
+
+      // --- Vòng lặp mô phỏng chính ---
+      for (let i = 1; i <= totalSessions; i++) {
+        let currentBetAmount = 0;
+        let note = '';
+        const isParoli = strategy.startsWith('paroli'); // Kiểm tra có phải chiến lược thắng-tiến
+        const isMartingale = strategy.startsWith('martingale'); // Kiểm tra có phải thua-tiến
+
+        // --- Logic quyết định mức cược theo chiến lược ---
+        if (isParoli || isMartingale) {
+            const sequence = strategy.endsWith('1-3-5') ? [1, 3, 5] : [1, 3, 6];
+            currentBetAmount = sequence[sequenceStep] * betUnit;
+        } else if (strategy === 'fixedRatio') {
+            netProfit = currentCapital - capital;
+            const allowedUnits = Math.floor(netProfit / deltaValue) + 1;
+            const newBetUnits = Math.max(1, allowedUnits);
+            if (newBetUnits > currentBetUnits) note = `Lợi nhuận đạt mốc, tăng cược.`;
+            if (newBetUnits < currentBetUnits) note = `Lợi nhuận sụt giảm, giảm cược.`;
+            currentBetUnits = newBetUnits;
+            currentBetAmount = currentBetUnits * betUnit;
         }
+
+        // --- Kiểm tra điều kiện dừng ---
+        if (currentCapital < currentBetAmount) {
+          note = 'Hết vốn để cược. Dừng mô phỏng.';
+          simulationHistory.push({ round: i, betAmount: 0, result: 'Dừng', capitalAfter: currentCapital, note });
+          break;
+        }
+
+        // --- Mô phỏng kết quả (50/50) ---
+        const isWin = Math.random() < 0.5;
         
-        dayResults.endOfDayCapital = capitalForNextSession;
-        dayResults.dayProfitLoss = capitalForNextSession - dayResults.startOfDayCapital;
-        allDaysResults.push(dayResults);
-        
-        capitalForNextDay = capitalForNextSession;
-        if(capitalForNextDay <= 0) break;
+        if (isWin) {
+          currentCapital += currentBetAmount;
+          if (isParoli) {
+            note = `Thắng ván ${sequenceStep + 1}. Tăng cược ván sau.`;
+            sequenceStep++;
+            if (sequenceStep >= 3) {
+              note = 'Hoàn thành chuỗi thắng! Quay về mức cược cơ bản.';
+              sequenceStep = 0;
+            }
+          }
+          if (isMartingale) {
+            note = 'Thắng, quay về mức cược cơ bản.';
+            sequenceStep = 0;
+          }
+        } else { // Thua
+          currentCapital -= currentBetAmount;
+          if (isParoli) {
+            note = 'Thua, chuỗi bị ngắt. Quay về mức cược cơ bản.';
+            sequenceStep = 0;
+          }
+          if (isMartingale) {
+            note = `Thua ván ${sequenceStep + 1}, tăng cược ván sau.`;
+            sequenceStep++;
+            if (sequenceStep >= 3) {
+              note = 'Thua cả chuỗi. Chấp nhận lỗ và bắt đầu lại.';
+              sequenceStep = 0;
+            }
+          }
+        }
+
+        simulationHistory.push({
+          round: i,
+          betAmount: currentBetAmount,
+          result: isWin ? 'Thắng' : 'Thua',
+          capitalAfter: currentCapital,
+          note: note,
+        });
+
+        if (currentCapital <= 0) {
+           simulationHistory[simulationHistory.length - 1].note = 'Vỡ nợ!';
+           break;
+        }
       }
 
-      setSimulationResults(allDaysResults);
-      setIsRunning(false);
-    }, 100); // Delay 100ms
-  }, [initialCapital, baseBet, sessionsPerDay, numDays]);
+      const finalCapital = Math.max(0, currentCapital);
+      const netProfitLoss = finalCapital - capital;
 
-  // TÍNH TOÁN TỔNG KẾT CUỐI CÙNG bằng useMemo để tối ưu hiệu năng
-  const summary = useMemo(() => {
-    if (simulationResults.length === 0) return null;
+      setHistory(simulationHistory);
+      setSimulationResult({
+        initialCapital: capital,
+        finalCapital: finalCapital,
+        netProfitLoss: netProfitLoss,
+      });
 
-    const finalCapital = simulationResults[simulationResults.length - 1].endOfDayCapital;
-    const totalProfitLoss = finalCapital > 0 ? finalCapital - initialCapital : -initialCapital;
-    const totalMoneyLost = simulationResults.reduce((acc, day) => acc + day.dayTotalLoss, 0);
-
-    return { finalCapital, totalProfitLoss, totalMoneyLost };
-  }, [simulationResults, initialCapital]);
+      setIsLoading(false);
+    }, 50);
+  };
 
   return (
     <div className="container">
-      <header>
-        <h1>Mô Phỏng Kỷ Luật Chơi Dài Hạn</h1>
-        <p>Mô phỏng vốn qua nhiều ngày chơi, mỗi ngày gồm nhiều phiên.</p>
-      </header>
+      <h1>Bộ Mô Phỏng Chiến Lược Cược</h1>
       
-      <div className="controls-wrapper">
-        {/* Lớp phủ loading */}
-        {isRunning && (
-          <div className="loading-overlay">
-            <div className="spinner"></div>
-            <p>Đang mô phỏng...</p>
-          </div>
-        )}
-        <div className="controls">
-          <div className="input-group">
-            <label htmlFor="initialCapital">Vốn ban đầu</label>
-            <input type="number" id="initialCapital" value={initialCapital} onChange={(e) => setInitialCapital(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label htmlFor="baseBet">Số tiền cược (Cơ bản)</label>
-            <input type="number" id="baseBet" value={baseBet} onChange={(e) => setBaseBet(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label htmlFor="sessionsPerDay">Số phiên mỗi ngày</label>
-            <input type="number" id="sessionsPerDay" value={sessionsPerDay} onChange={(e) => setSessionsPerDay(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label htmlFor="numDays">Số ngày chơi</label>
-            <input type="number" id="numDays" value={numDays} onChange={(e) => setNumDays(Number(e.target.value))} />
-          </div>
-          <button onClick={handleStartSimulation} disabled={isRunning}>
-            Bắt Đầu Chơi
-          </button>
-          {error && <p className="error-message">{error}</p>}
+      <form onSubmit={handleSimulate} className="form-container">
+        <div className="input-group">
+          <label>Chọn Chiến Lược</label>
+          <select value={strategy} onChange={(e) => setStrategy(e.target.value)}>
+            <option value="paroli-1-3-6">Gấp thếp KHI THẮNG (1-3-6)</option>
+            <option value="paroli-1-3-5">Gấp thếp KHI THẮNG (1-3-5)</option>
+            <option value="martingale-1-3-6">Gấp thếp KHI THUA (1-3-6)</option>
+            <option value="martingale-1-3-5">Gấp thếp KHI THUA (1-3-5)</option>
+            <option value="fixedRatio">Tỷ Lệ Cố Định (Fixed Ratio)</option>
+          </select>
         </div>
-      </div>
-
-
-      <div className="results-area">
-        {/* HỘP TỔNG KẾT CUỐI CÙNG */}
-        {summary && (
-          <div className="summary-result grand-summary">
-            <h3>Tổng Kết Cuối Cùng Sau {simulationResults.length} Ngày</h3>
-            <div className="summary-details">
-              <p><span>Vốn Ban Đầu:</span> {new Intl.NumberFormat('vi-VN').format(initialCapital)} VNĐ</p>
-              <p className='loss'><span>Tổng Tiền Đã Mất:</span> {new Intl.NumberFormat('vi-VN').format(summary.totalMoneyLost)} VNĐ</p>
-              <p><span>Vốn Còn Lại:</span> {new Intl.NumberFormat('vi-VN').format(summary.finalCapital)} VNĐ</p>
-              <p className={summary.totalProfitLoss > 0 ? 'win' : summary.totalProfitLoss < 0 ? 'loss' : ''}>
-                <span>Lãi/Lỗ Ròng:</span>
-                {new Intl.NumberFormat('vi-VN').format(summary.totalProfitLoss)} VNĐ
-              </p>
-            </div>
+        <div className="input-group">
+          <label>Vốn Ban Đầu (VNĐ)</label>
+          <input type="number" value={initialCapital} onChange={(e) => setInitialCapital(e.target.value)} required />
+        </div>
+        <div className="input-group">
+          <label>Mức Cược Cơ Bản (1 đơn vị)</label>
+          <input type="number" value={baseBet} onChange={(e) => setBaseBet(e.target.value)} required />
+        </div>
+        {strategy === 'fixedRatio' && (
+          <div className="input-group">
+            <label>Delta (Lợi nhuận để tăng cược)</label>
+            <input type="number" value={delta} onChange={(e) => setDelta(e.target.value)} required />
           </div>
         )}
+        <div className="input-group">
+          <label>Số Phiên / Ngày</label>
+          <input type="number" value={sessionsPerDay} onChange={(e) => setSessionsPerDay(e.target.value)} required />
+        </div>
+        <div className="input-group">
+          <label>Số Ngày Chơi</label>
+          <input type="number" value={totalDays} onChange={(e) => setTotalDays(e.target.value)} required />
+        </div>
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Đang Chạy Mô Phỏng...' : 'Bắt Đầu Chơi'}
+        </button>
+      </form>
 
-        {/* HIỂN THỊ KẾT QUẢ TỪNG NGÀY */}
-        {simulationResults.map((day) => (
-          <div key={day.dayNumber} className="day-result">
-             <h2 className="day-header">
-              Ngày #{day.dayNumber} - Lãi/Lỗ: 
-              <span className={day.dayProfitLoss > 0 ? 'win-text' : day.dayProfitLoss < 0 ? 'loss-text' : ''}>
-                {new Intl.NumberFormat('vi-VN').format(day.dayProfitLoss)} VNĐ
+      {simulationResult && (
+        <div className="results-container">
+          <h2>Tổng Kết Cuối Cùng Sau {totalDays} Ngày</h2>
+          <div className="summary">
+            <p><strong>Vốn Ban Đầu:</strong> {formatCurrency(simulationResult.initialCapital)}</p>
+            <p><strong>Vốn Còn Lại:</strong> {formatCurrency(simulationResult.finalCapital)}</p>
+            <p><strong>Lãi/Lỗ Ròng:</strong> 
+              <span style={{ color: simulationResult.netProfitLoss >= 0 ? '#28a745' : '#dc3545', fontWeight: 'bold' }}>
+                {formatCurrency(simulationResult.netProfitLoss)}
               </span>
-            </h2>
-            <p className="day-capital-flow">Vốn đầu ngày: {new Intl.NumberFormat('vi-VN').format(day.startOfDayCapital)} VNĐ ➡️ Vốn cuối ngày: {new Intl.NumberFormat('vi-VN').format(day.endOfDayCapital)} VNĐ</p>
-
-            {day.sessions.map((session) => (
-              <div key={session.sessionNumber} className="session-result-inner">
-                 <details>
-                  <summary>
-                    <strong className={session.finalResult === 'Chốt Lời' ? 'win-text' : 'loss-text'}>
-                      Phiên #{session.sessionNumber}: {session.finalResult}
-                    </strong>
-                     (Lãi/Lỗ: {new Intl.NumberFormat('vi-VN').format(session.profitOrLoss)} VNĐ) - Tổng {session.totalBets} ván
-                  </summary>
-                  <div className="table-container">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Ván #</th><th>Chế Độ</th><th>Mức Cược</th><th>Kết Quả</th><th>Vốn Sau Cược</th><th>Ghi Chú</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {session.detailedLog.map((log) => (
-                          <tr key={log.van}>
-                            <td>{log.van}</td><td>{log.mode}</td><td>{new Intl.NumberFormat('vi-VN').format(log.amount)}</td><td className={log.result === 'Thắng' ? 'win-text' : 'loss-text'}>{log.result}</td><td>{new Intl.NumberFormat('vi-VN').format(log.capitalAfter)}</td><td>{log.note}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </details>
-              </div>
-            ))}
+            </p>
           </div>
-        ))}
-      </div>
+
+          <h3>Lịch Sử Chi Tiết Các Phiên Chơi</h3>
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Phiên</th>
+                  <th>Mức Cược</th>
+                  <th>Kết Quả</th>
+                  <th>Vốn Sau Cược</th>
+                  <th>Ghi Chú</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((item) => (
+                  <tr key={item.round}>
+                    <td>#{item.round}</td>
+                    <td>{formatCurrency(item.betAmount)}</td>
+                    <td style={{ color: item.result === 'Thắng' ? '#28a745' : '#dc3545' }}>
+                      {item.result}
+                    </td>
+                    <td>{formatCurrency(item.capitalAfter)}</td>
+                    <td className="note-cell">{item.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
