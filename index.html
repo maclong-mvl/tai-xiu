@@ -166,7 +166,27 @@
     }
 
     .nav-tab:hover:not(.active) {
-      color: rgba(255, 255, 255, .6);
+      color: #b18151;
+    }
+
+    h2.about-headline img.srv-award {
+      margin-bottom: 32px;
+    }
+
+    .nav-tab::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 12px;
+      right: 12px;
+      height: 1px;
+      background: #b18151;
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .nav-tab:hover:not(.active)::after {
+      transform: scaleX(1);
     }
 
     /* Right group: flex gap-[12px] items-center */
@@ -442,20 +462,22 @@
      * Bên trong: div bg-[#b18151] h-[57px] w-px (gold top bar)
      */
     .timeline-bar-outer {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      position: relative;
       width: 1px;
-      height: 250px;
       background: rgba(255, 255, 255, 0.1);
       flex-shrink: 0;
     }
 
     .timeline-bar-gold {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 1px;
       height: 57px;
       background: #b18151;
-      flex-shrink: 0;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), height 0.5s ease;
+      transform-origin: top;
+      will-change: transform, height;
     }
 
     /*
@@ -478,31 +500,24 @@
       flex-direction: column;
       gap: 12px;
       list-style: none;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.3s ease;
     }
 
-    .timeline-items {
-      flex: 1 0 0;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      list-style: none;
-      padding: 0;
+    .timeline-item.active {
+      opacity: 1;
     }
 
-    /*
-     * Số: Google Sans SemiBold, 15px, #b16151
-     * h-18px, w-16px, leading-40px
-     */
     .t-num {
       font-size: 15px;
       font-weight: 600;
       color: #b16151;
       width: 16px;
       height: 18px;
-      line-height: 40px;
+      line-height: normal;
       flex-shrink: 0;
       font-variant-numeric: lining-nums;
-      overflow: hidden;
       margin-right: 8px;
     }
 
@@ -514,28 +529,33 @@
     .t-name {
       font-size: 20px;
       font-weight: 500;
-      color: #fff;
+      color: rgba(255, 255, 255, 0.3);
       text-transform: uppercase;
       letter-spacing: 0;
-      line-height: 40px;
-      height: 18px;
-      width: 234px;
-      overflow: hidden;
-      white-space: nowrap;
+      line-height: normal;
+      width: auto;
+      transition: color 0.3s ease;
     }
 
-    .t-name.muted {
-      color: rgba(255, 255, 255, 0.3);
+    .timeline-item.active .t-name {
+      color: #fff;
     }
 
-    /*
-     * Subtitle: Google Sans Regular, 14px, #d4d4d8, leading-18px
-     */
     .t-desc {
       font-size: 14px;
       font-weight: 400;
       color: #d4d4d8;
-      line-height: 18px;
+      line-height: 1.6;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.5s ease, opacity 0.5s ease;
+    }
+
+    .timeline-item.active .t-desc {
+      max-height: 100px;
+      opacity: 1;
+      margin-top: 4px;
     }
 
     /* =====================================================================
@@ -610,29 +630,91 @@
       justify-content: center;
     }
 
-    .srv-cell img {
+    .srv-cell-bg,
+    .srv-cell-video {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
       pointer-events: none;
-      transition: transform .6s ease;
+      transition: transform .6s ease, opacity .6s ease;
     }
 
-    .srv-cell:hover img {
-      transform: scale(1.04);
+    .srv-cell-video {
+      opacity: 0;
+      z-index: 1;
+    }
+
+    .srv-cell:hover .srv-cell-bg {
+      transform: scale(1.1);
+      opacity: 0;
+    }
+
+    .srv-cell:hover .srv-cell-video {
+      transform: scale(1.1);
+      opacity: 1;
     }
 
     .srv-cell-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(20, 14, 10, 0);
-      transition: background .3s;
+      background: linear-gradient(0deg, rgba(30, 24, 21, 0.95) 0%, rgba(30, 24, 21, 0.4) 40%, rgba(30, 24, 21, 0) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-start;
+      padding: 60px 48px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: 2;
     }
 
     .srv-cell:hover .srv-cell-overlay {
-      background: rgba(20, 14, 10, .18);
+      opacity: 1;
+    }
+
+    .srv-cell-content {
+      transform: translateY(30px);
+      transition: transform 0.5s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .srv-cell:hover .srv-cell-content {
+      transform: translateY(0);
+    }
+
+    .srv-cell-icon {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-left: -5px;
+    }
+
+    .srv-cell-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 33.27px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 1);
+      margin: 0;
+      line-height: 39.93px;
+      letter-spacing: -0.02em;
+    }
+
+    .srv-cell-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 20px;
+      letter-spacing: 0.25px;
+      color: rgba(255, 255, 255, 1);
+      max-width: 800px;
+      margin: 0;
     }
 
     /* =====================================================================
@@ -859,7 +941,7 @@
 
     .contact-form input::placeholder,
     .contact-form textarea::placeholder {
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(210, 183, 155, 1);
     }
 
     .contact-form input:focus,
@@ -1018,6 +1100,23 @@
         grid-template-rows: 400px 400px;
       }
 
+      .srv-cell-overlay {
+        padding: 20px;
+      }
+
+      .srv-cell-title {
+        font-size: 24px;
+      }
+
+      .srv-cell-desc {
+        font-size: 14px;
+      }
+
+      .srv-cell-icon {
+        width: 60px;
+        height: 60px;
+      }
+
       .contact-card {
         position: relative;
         top: auto;
@@ -1085,7 +1184,29 @@
 
       .services-grid {
         grid-template-columns: 1fr;
-        grid-template-rows: repeat(4, 300px);
+        grid-template-rows: repeat(4, 350px);
+      }
+
+      .srv-cell-overlay {
+        padding: 24px;
+      }
+
+      .srv-cell-title {
+        font-size: 22px;
+      }
+
+      .srv-cell-desc {
+        font-size: 13px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .srv-cell-icon {
+        width: 50px;
+        height: 50px;
       }
 
       .footer {
@@ -1112,16 +1233,16 @@
       </ul>
 
       <div class="nav-right">
-        <button class="nav-btn" aria-label="Chọn ngôn ngữ: Tiếng Việt">
+        <a href="#" class="nav-btn" aria-label="Chọn ngôn ngữ: Tiếng Việt">
           <img src="https://www.figma.com/api/mcp/asset/c236d5f4-5ec3-420b-854f-2898bedfa44a" alt=""
             aria-hidden="true" />
           VN
-        </button>
-        <button class="nav-btn" aria-label="Liên hệ điện thoại: (420) 511-8744 x729">
+        </a>
+        <a href="tel:4205118744" class="nav-btn" aria-label="Liên hệ điện thoại: (420) 511-8744 x729">
           <img src="https://www.figma.com/api/mcp/asset/c8bbff4a-f8d6-4430-bf45-7c4032ecbac3" alt=""
             aria-hidden="true" />
           (420) 511-8744 x729
-        </button>
+        </a>
       </div>
     </nav>
   </header>
@@ -1188,29 +1309,33 @@
 
             <ul class="timeline-items">
               <!-- Item 01: active -->
-              <li class="timeline-item">
+              <li class="timeline-item active" data-video="./video/Minotti_2025_HP.mp4" data-index="0">
                 <div class="timeline-item-row">
                   <span class="t-num">01</span>
                   <span class="t-name">Westonstad</span>
                 </div>
-                <p class="t-desc">Lorem ipsum dolor sit amet consectetur. Rutrum pellentesque ridiculus non quisque
-                  aliquam mi eget.</p>
+                <p class="t-desc">We design spaces that unite function and beauty, creating interiors and architecture
+                  that bring your lifestyle and vision to life.</p>
               </li>
 
-              <!-- Item 02: inactive -->
-              <li class="timeline-item">
+              <!-- Item 02 -->
+              <li class="timeline-item" data-video="./video/10135156-uhd_3840_2160_30fps.mp4" data-index="1">
                 <div class="timeline-item-row">
                   <span class="t-num">02</span>
-                  <span class="t-name muted">Westonstad</span>
+                  <span class="t-name">Modern Living</span>
                 </div>
+                <p class="t-desc">Crafting contemporary environments that reflect innovation and comfort, tailored to
+                  your unique needs.</p>
               </li>
 
-              <!-- Item 03: inactive -->
-              <li class="timeline-item">
+              <!-- Item 03 -->
+              <li class="timeline-item" data-video="./video/7578552-uhd_3840_2160_30fps.mp4" data-index="2">
                 <div class="timeline-item-row">
                   <span class="t-num">03</span>
-                  <span class="t-name muted">Westonstad</span>
+                  <span class="t-name">Timeless Design</span>
                 </div>
+                <p class="t-desc">Creating lasting impressions with classic aesthetics and premium materials that stand
+                  the test of time.</p>
               </li>
             </ul>
           </div>
@@ -1232,20 +1357,52 @@
       <!-- 2×2 grid -->
       <div class="services-grid">
         <figure class="srv-cell">
-          <img src="./images/home/services/services-1.jpg" alt="Interior project 1" />
-          <div class="srv-cell-overlay" aria-hidden="true"></div>
+          <img src="./images/home/services/services-1.jpg" alt="Interior project 1" class="srv-cell-bg" />
+          <video src="./video/7578552-uhd_3840_2160_30fps.mp4" class="srv-cell-video" muted loop playsinline></video>
+          <div class="srv-cell-overlay">
+            <div class="srv-cell-content">
+              <img class="srv-cell-icon" src="./images/home/services/logo-services.svg" alt="" />
+              <h3 class="srv-cell-title">Thiết kế không gian</h3>
+              <p class="srv-cell-desc">At Inteo, we create inspiring spaces that blend timeless design with modern
+                innovation.</p>
+            </div>
+          </div>
         </figure>
         <figure class="srv-cell">
-          <img src="./images/home/services/services-2.jpg" alt="Interior project 2" />
-          <div class="srv-cell-overlay" aria-hidden="true"></div>
+          <img src="./images/home/services/services-2.jpg" alt="Interior project 2" class="srv-cell-bg" />
+          <video src="./video/6580022-uhd_4096_2160_25fps.mp4" class="srv-cell-video" muted loop playsinline></video>
+          <div class="srv-cell-overlay">
+            <div class="srv-cell-content">
+              <img class="srv-cell-icon" src="./images/home/services/logo-services.svg" alt="" />
+              <h3 class="srv-cell-title">Thiết kế nội thất</h3>
+              <p class="srv-cell-desc">At Inteo, we create inspiring spaces that blend timeless design with modern
+                innovation.</p>
+            </div>
+          </div>
         </figure>
         <figure class="srv-cell">
-          <img src="./images/home/services/services-3.png" alt="Interior project 3" />
-          <div class="srv-cell-overlay" aria-hidden="true"></div>
+          <img src="./images/home/services/services-3.png" alt="Interior project 3" class="srv-cell-bg" />
+          <video src="./video/5384823-uhd_4096_2160_30fps.mp4" class="srv-cell-video" muted loop playsinline></video>
+          <div class="srv-cell-overlay">
+            <div class="srv-cell-content">
+              <img class="srv-cell-icon" src="./images/home/services/logo-services.svg" alt="" />
+              <h3 class="srv-cell-title">Thiết kế xây dựng</h3>
+              <p class="srv-cell-desc">At Inteo, we create inspiring spaces that blend timeless design with modern
+                innovation.</p>
+            </div>
+          </div>
         </figure>
         <figure class="srv-cell">
-          <img src="./images/home/services/services-4.png" alt="Interior project 4" />
-          <div class="srv-cell-overlay" aria-hidden="true"></div>
+          <img src="./images/home/services/services-4.png" alt="Interior project 4" class="srv-cell-bg" />
+          <video src="./video/18531413-uhd_3840_2160_60fps.mp4" class="srv-cell-video" muted loop playsinline></video>
+          <div class="srv-cell-overlay">
+            <div class="srv-cell-content">
+              <img class="srv-cell-icon" src="./images/home/services/logo-services.svg" alt="" />
+              <h3 class="srv-cell-title">Tư vấn & Quy hoạch</h3>
+              <p class="srv-cell-desc">At Inteo, we create inspiring spaces that blend timeless design with modern
+                innovation.</p>
+            </div>
+          </div>
         </figure>
       </div>
     </section>
@@ -1356,6 +1513,90 @@
     </div>
   </footer>
 
+  <script>
+    // Services Hover Video play/pause
+    document.querySelectorAll('.srv-cell').forEach(cell => {
+      const video = cell.querySelector('.srv-cell-video');
+      if (video) {
+        cell.addEventListener('mouseenter', () => {
+          video.play().catch(e => console.error("Video play failed:", e));
+        });
+        cell.addEventListener('mouseleave', () => {
+          video.pause();
+          video.currentTime = 0;
+        });
+      }
+    });
+
+    // Timeline Switcher Logic
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    const mainVideo = document.querySelector('.about-main-img');
+    const mainText = document.querySelector('.about-backdrop-text');
+    const goldBar = document.querySelector('.timeline-bar-gold');
+
+    function syncTimeline(item) {
+      if (!item || !goldBar) return;
+
+      // 1. Toggle Active State
+      timelineItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+
+      // 2. Change Video (if valid button click)
+      const newVideoSrc = item.getAttribute('data-video');
+      if (mainVideo && newVideoSrc && mainVideo.getAttribute('src') !== newVideoSrc) {
+        mainVideo.src = newVideoSrc;
+        mainVideo.play();
+      }
+
+      // 3. Sync Mosaic Description
+      const newText = item.querySelector('.t-desc').textContent;
+      if (mainText && newText && mainText.textContent !== newText) {
+        mainText.style.opacity = 0;
+        setTimeout(() => {
+          mainText.textContent = newText;
+          mainText.style.opacity = 1;
+        }, 300);
+      }
+
+      // 4. Move and Resize Gold Bar
+      function updateBar() {
+        const barOuter = document.querySelector('.timeline-bar-outer');
+        if (barOuter && item) {
+          const barRect = barOuter.getBoundingClientRect();
+          const itemRect = item.getBoundingClientRect();
+          let relativeTop = itemRect.top - barRect.top;
+          if (item.getAttribute('data-index') === "0") {
+            // relativeTop += 24;
+          } else {
+            relativeTop -= 30;
+          }
+          goldBar.style.transform = `translateY(${relativeTop}px)`;
+          goldBar.style.height = `${itemRect.height}px`;
+        }
+      }
+
+      // Run multiple times to capture the animation progress
+      updateBar();
+      setTimeout(updateBar, 100);
+      setTimeout(updateBar, 200); // After transition finishes
+    }
+
+    timelineItems.forEach((item) => {
+      item.addEventListener('click', () => syncTimeline(item));
+    });
+
+    // Initial sync for active item
+    const initialActive = document.querySelector('.timeline-item.active');
+    if (initialActive) {
+      // Small delay to ensure styles are loaded
+      setTimeout(() => syncTimeline(initialActive), 100);
+    }
+
+    // Handle Mosaic Text Transition
+    if (mainText) {
+      mainText.style.transition = 'opacity 0.3s ease';
+    }
+  </script>
 </body>
 
 </html>
