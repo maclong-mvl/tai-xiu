@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Admin/.claude/projects/C--Users-Admin-Downloads-HTML-CODE/4a3fe6d4-e22c-4ba0-8e06-93182d794545/tool-results/**)",
+      "Bash(python3:*)",
+      "Bash(node -e \":*)"
+    ]
+  }
+}

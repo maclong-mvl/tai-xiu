@@ -1,13 +1,1361 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mo-phong-cuoc</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amorcons – Kiến tạo không gian chạm cảm xúc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* =====================================================================
+       RESET
+    ===================================================================== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    header,
+    main,
+    section,
+    article,
+    aside,
+    figure,
+    figcaption,
+    footer,
+    nav {
+      display: block;
+    }
+
+    /* Content Width Limit */
+    header,
+    main,
+    footer {
+      max-width: 1920px;
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: #1e1e1e;
+      color: #fafaf9;
+      overflow-x: hidden;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    button,
+    input,
+    textarea {
+      border: none;
+      outline: none;
+      background: none;
+    }
+
+    textarea {
+      resize: none;
+    }
+
+    /* =====================================================================
+       DESIGN TOKENS
+    ===================================================================== */
+    :root {
+      --gold: #b18151;
+      --gold-red: #b16151;
+      --gold-muted: #a27760;
+      --gold-light: #d2b79b;
+      --cream: #f0e4d4;
+      --dark-nav: rgba(33, 27, 27, 0.70);
+      --dark-bg: #1e1e1e;
+      --dark-card: #302c28;
+      --dark-input: #1c1b18;
+      --nav-h: 80px;
+    }
+
+    /* =====================================================================
+       NAVBAR
+       Figma: flex gap-[290px] h-[80px] px-[48px] backdrop-blur-[20px]
+       Children: logo | tabs-group (flex-1 justify-center gap-48px) | right-group
+    ===================================================================== */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      height: var(--nav-h);
+      width: 100%;
+      max-width: 1920px;
+      display: flex;
+      align-items: center;
+      gap: 48px;
+      /* practical gap — Figma's 290px is for 1920px canvas */
+      padding: 0 48px;
+      background: var(--dark-nav);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .nav-logo {
+      height: 30.861px;
+      width: 131.514px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    /* Figma: flex-[1_0_0] gap-[48px] h-full items-center justify-center */
+    .nav-tabs {
+      flex: 1 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      height: 100%;
+      list-style: none;
+    }
+
+    .nav-item {
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Figma: px-[12px] py-[14px] flex flex-col h-full items-center justify-center */
+    .nav-tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 14px 12px;
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #fff;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: color .2s;
+      position: relative;
+    }
+
+    /* Active tab: border-b border-solid border-white */
+    .nav-tab.active {
+      border-bottom: 1px solid #fff;
+    }
+
+    .nav-tab:hover:not(.active) {
+      color: rgba(255, 255, 255, .6);
+    }
+
+    /* Right group: flex gap-[12px] items-center */
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Figma: rounded-[100px] p-[12px] flex gap-[4px] items-center
+       background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.2)) */
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      border-radius: 100px;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      color: #fafaf9;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background .2s;
+      background: rgba(0, 0, 0, 0.20);
+    }
+
+    .nav-btn:hover {
+      background: rgba(0, 0, 0, .35);
+    }
+
+    .nav-btn img {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    /* =====================================================================
+       HERO
+    ===================================================================== */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 1080px;
+      min-height: 600px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Radial image composition — simplified using key group images as layers */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Main interior photo layer */
+    .hero-bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    /* Dark gradient overlays */
+    .hero-overlay-top {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+          rgba(18, 13, 13, .72) 0%,
+          rgba(18, 13, 13, .35) 35%,
+          rgba(18, 13, 13, .35) 60%,
+          rgba(18, 13, 13, .80) 100%);
+    }
+
+    .hero-text {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 1216px;
+      padding: 0 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 72px;
+      line-height: 96px;
+      color: #fff;
+      letter-spacing: -1.44px;
+      font-feature-settings: 'liga' 0, 'lnum' 1, 'pnum' 1;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 24px;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, .75);
+      max-width: 539px;
+    }
+
+    /* =====================================================================
+       ABOUT / SECTION 1
+    ===================================================================== */
+    .about-wrap {
+      background: var(--dark-bg);
+      background-repeat: no-repeat !important;
+      padding: 80px 0 200px;
+    }
+
+    /* Gold line + icon divider */
+    .divider-icon-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+      margin-bottom: 80px;
+    }
+
+    .divider-line-gold {
+      width: 1px;
+      height: 46px;
+      background: var(--gold);
+    }
+
+    .divider-award {
+      width: 48px;
+      height: 48px;
+    }
+
+    /* 2-column about layout — Figma: flex gap-[80px] items-center pr-[80px] */
+    .about-cols {
+      display: flex;
+      align-items: center;
+      gap: 80px;
+      padding-right: 80px;
+      width: 100%;
+      position: relative;
+    }
+
+    /* =====================================================================
+       ABOUT IMAGE AREA (left column)
+       Figma: large image/video, dark overlay, caption text at bottom
+    ===================================================================== */
+    .about-mosaic {
+      flex: 2 0 0;
+      min-width: 0;
+      position: relative;
+      min-height: 680px;
+      align-self: stretch;
+    }
+
+    .about-img-area {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Overlay tối phủ lên video/ảnh */
+    .about-backdrop {
+      position: absolute;
+      background: rgba(48, 44, 40, 1);
+      pointer-events: none;
+      width: 100%;
+      height: 70%;
+      bottom: 0;
+    }
+
+    /* Video / ảnh chính lấp đầy cột trái */
+    .about-main-img {
+      position: absolute;
+      inset: 0;
+      width: 90%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+
+    /* Overlay dưới cùng — gradient + text caption */
+    .about-backdrop-two {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 2;
+      background: rgba(48, 44, 40, 1);
+      padding: 43px 37px 35px;
+    }
+
+    .about-backdrop-text {
+      font-size: 16px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.55);
+      line-height: 1.7;
+      letter-spacing: 0.2px;
+    }
+
+    /*
+     * RIGHT COLUMN — Figma node 191:587
+     * flex flex-col gap-[80px] flex-[1_0_0] items-start
+     * Children: headline → timeline-block
+     */
+    .about-text {
+      flex: 1 0 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 80px;
+      /* gap giữa headline và timeline */
+    }
+
+    /*
+     * Figma: Playfair Display Regular, 30.133px, line-height 36.16px,
+     * color #b18151, tracking -0.6027px
+     * "dream home" = Playfair Display Italic
+     */
+    .about-headline {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 30.133px;
+      line-height: 36.16px;
+      color: #b18151;
+      letter-spacing: -0.6027px;
+      font-feature-settings: 'liga' 0, 'lnum' 1, 'pnum' 1;
+    }
+
+    .about-headline em {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    /*
+     * Figma node 229:1139: flex gap-[32px] items-end w-full
+     * items-end → bar + items đều bottom-align trong hàng ngang
+     */
+    .timeline-wrap {
+      display: flex;
+      gap: 32px;
+      width: 100%;
+    }
+
+    /*
+     * Figma node 229:1138:
+     * bg-[rgba(255,255,255,0.1)] flex h-[250px] items-start shrink-0
+     * Bên trong: div bg-[#b18151] h-[57px] w-px (gold top bar)
+     */
+    .timeline-bar-outer {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 1px;
+      height: 250px;
+      background: rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+    }
+
+    .timeline-bar-gold {
+      width: 1px;
+      height: 57px;
+      background: #b18151;
+      flex-shrink: 0;
+    }
+
+    /*
+     * Figma node 191:1035:
+     * flex-[1_0_0] flex-col gap-[24px] items-start
+     */
+    .timeline-items {
+      flex: 1 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /*
+     * Item 01 (active): flex-col gap-[12px]
+     * Item 02-03 (inactive): chỉ có row, không có subtitle
+     */
+    .timeline-item {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      list-style: none;
+    }
+
+    .timeline-items {
+      flex: 1 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      list-style: none;
+      padding: 0;
+    }
+
+    /*
+     * Số: Google Sans SemiBold, 15px, #b16151
+     * h-18px, w-16px, leading-40px
+     */
+    .t-num {
+      font-size: 15px;
+      font-weight: 600;
+      color: #b16151;
+      width: 16px;
+      height: 18px;
+      line-height: 40px;
+      flex-shrink: 0;
+      font-variant-numeric: lining-nums;
+      overflow: hidden;
+      margin-right: 8px;
+    }
+
+    /*
+     * Tên: Google Sans Medium, 20px, uppercase, leading-40px
+     * active = white | inactive = rgba(255,255,255,0.3)
+     * w-234px, h-18px
+     */
+    .t-name {
+      font-size: 20px;
+      font-weight: 500;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      line-height: 40px;
+      height: 18px;
+      width: 234px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .t-name.muted {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    /*
+     * Subtitle: Google Sans Regular, 14px, #d4d4d8, leading-18px
+     */
+    .t-desc {
+      font-size: 14px;
+      font-weight: 400;
+      color: #d4d4d8;
+      line-height: 18px;
+    }
+
+    /* =====================================================================
+       SERVICES  (Dịch vụ)
+    ===================================================================== */
+    .services-wrap {
+      background: var(--dark-bg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /*
+     * Figma node 223:340: flex-col gap-[24px] items-center
+     * Children: imgAbstract206 (50×50) → title → subtitle
+     * Không có gold line trước icon (khác about section)
+     * Outer gap với grid: 80px (node 273:1665 gap-[80px])
+     */
+    .services-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 80px 48px 80px;
+    }
+
+    .srv-award {
+      width: 50px;
+      height: 50px;
+    }
+
+    .srv-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 400;
+      font-size: 33.273px;
+      line-height: 39.927px;
+      color: var(--gold);
+      letter-spacing: -.6655px;
+      font-feature-settings: 'liga' 0, 'lnum' 1, 'pnum' 1;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .srv-sub {
+      font-size: 14px;
+      font-weight: 300;
+      color: #fff;
+      letter-spacing: .25px;
+      line-height: 20px;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* 2×2 grid */
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 673px 673px;
+      gap: 4px;
+    }
+
+    .srv-cell {
+      position: relative;
+      overflow: hidden;
+      background: #111;
+    }
+
+    .srv-cell.hover-cell {
+      /* The "hover" side — shows dark overlay / empty on default state */
+      background: var(--dark-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .srv-cell img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      transition: transform .6s ease;
+    }
+
+    .srv-cell:hover img {
+      transform: scale(1.04);
+    }
+
+    .srv-cell-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(20, 14, 10, 0);
+      transition: background .3s;
+    }
+
+    .srv-cell:hover .srv-cell-overlay {
+      background: rgba(20, 14, 10, .18);
+    }
+
+    /* =====================================================================
+       CTA MID
+    ===================================================================== */
+    .cta-mid {
+      background: var(--dark-bg);
+      padding: 80px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .cta-mid-top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+    }
+
+    .cta-mid-text {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 400;
+      font-size: 30.133px;
+      line-height: 36.16px;
+      color: var(--gold);
+      text-align: center;
+      letter-spacing: -.6027px;
+      font-feature-settings: 'liga' 0, 'lnum' 1, 'pnum' 1;
+    }
+
+    .cta-mid-text em {
+      font-style: italic;
+    }
+
+    /* =====================================================================
+       CONTACT
+    ===================================================================== */
+    .contact-us {
+      position: relative;
+      padding: 120px 48px;
+      background-image: url('./images/home/contact-us/bg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      align-items: center;
+      min-height: 800px;
+    }
+
+    .contact-us::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.2);
+      z-index: 0;
+    }
+
+    .contact-us-container {
+      width: 100%;
+      max-width: 1920px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 40px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .contact-left {
+      max-width: 600px;
+      color: #fff;
+      padding-left: 5%;
+    }
+
+    .contact-subtitle {
+      font-family: 'Google Sans Flex', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+      color: rgba(177, 129, 81, 1);
+      letter-spacing: 0.1em;
+      margin-bottom: 24px;
+    }
+
+    .contact-subtitle .line {
+      width: 48px;
+      height: 1px;
+      background: rgba(177, 129, 81, 1);
+    }
+
+    .contact-hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 30.13px;
+      font-weight: 400;
+      font-style: normal;
+      line-height: 36.16px;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px 0;
+      color: rgba(255, 255, 255, 1);
+    }
+
+    .contact-hero-title span {
+      font-style: italic;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .contact-desc {
+      font-family: 'Google Sans Flex', 'Google Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 300;
+      font-style: normal;
+      line-height: 20px;
+      letter-spacing: 0.25px;
+      color: rgba(255, 255, 255, 1);
+      margin: 0;
+    }
+
+    .contact-form-box {
+      background: rgba(36, 34, 31, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 64px 56px;
+      width: 576px;
+      text-align: center;
+      margin-right: 5%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-pre-title {
+      font-family: 'Google Sans Flex', 'Google Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      font-style: normal;
+      line-height: 13.63px;
+      letter-spacing: 0.34px;
+      text-align: center;
+      color: rgba(210, 183, 155, 0.5);
+      margin: 0 0 12px 0;
+    }
+
+    h2.contact-us-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-style: normal;
+      font-size: 30.13px;
+      line-height: 36.16px;
+      letter-spacing: -0.02em;
+      text-align: center;
+      color: rgba(177, 129, 81, 1);
+
+    }
+
+    section.contact-us-section .center-icon {
+      margin: 0 0 16px 0;
+    }
+
+    section.contact-us-section {
+      margin-top: 80px;
+    }
+
+    .contact-us-header {
+      margin-bottom: 80px;
+    }
+
+    .contact-form-box .contact-us-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-style: normal;
+      font-size: 32px;
+      line-height: 38.99px;
+      letter-spacing: -0.43px;
+      text-align: center;
+      color: rgba(240, 228, 212, 1);
+      margin: 0 0 13px 0;
+    }
+
+    .form-post-title {
+      font-family: 'Google Sans Flex', 'Google Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      font-style: normal;
+      line-height: 13.63px;
+      letter-spacing: 0.34px;
+      text-align: center;
+      color: rgba(210, 183, 155, 0.55);
+      margin: 0 0 24px 0;
+    }
+
+    .form-dots {
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .form-dots img {
+      height: 6px;
+      opacity: 0.6;
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
+      background: #1b1917;
+      border: 1px solid transparent;
+      padding: 16px 20px;
+      font-family: 'Google Sans Flex', sans-serif;
+      font-size: 14px;
+      color: #fff;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .contact-form input:focus,
+    .contact-form textarea:focus {
+      border-color: rgba(177, 129, 81, 0.5);
+    }
+
+    .contact-form textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .submit-btn {
+      background: linear-gradient(90deg, #d3b48f 0%, #a4764b 100%);
+      color: #1a1a1a;
+      border: none;
+      padding: 16px;
+      font-family: 'Google Sans Flex', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: filter 0.3s ease;
+      margin-top: 8px;
+      border-radius: 8px;
+    }
+
+    .submit-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    /* =====================================================================
+       FOOTER
+    ===================================================================== */
+    .footer-bar {
+      background: rgba(37, 37, 37, 1);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .footer-bar-inner {
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo img {
+      height: 2.5rem;
+      width: auto;
+      display: block;
+    }
+
+    .footer-social {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .footer-follow-text {
+      font-family: 'Google Sans Flex', 'Google Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      font-style: normal;
+      line-height: 20px;
+      letter-spacing: 0.25px;
+      color: rgba(132, 132, 132, 1);
+      white-space: nowrap;
+    }
+
+    .footer-follow-line {
+      display: block;
+      width: 64px;
+      height: 1px;
+      background: rgba(132, 132, 132, 1);
+    }
+
+    .footer-social-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+    .footer-social-icon img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      transition: opacity 0.3s ease;
+    }
+
+    .footer-social-icon:hover {
+      border-color: rgba(177, 129, 81, 1);
+      background: rgba(177, 129, 81, 0.1);
+      box-shadow: 0 0 10px rgba(177, 129, 81, 0.25);
+    }
+
+    .footer-social-icon:hover img {
+      opacity: 1;
+    }
+
+    .footer-social-list {
+      display: flex;
+      list-style: none;
+      gap: 16px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .form-group {
+      width: 100%;
+    }
+
+    /* =====================================================================
+       RESPONSIVE
+    ===================================================================== */
+    @media (max-width: 1400px) {
+      .contact-card {
+        left: auto;
+        right: 48px;
+        width: min(576px, 45vw);
+      }
+
+      .contact-left-text {
+        max-width: 40vw;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .hero-title {
+        font-size: 52px;
+        line-height: 68px;
+      }
+
+      .about-cols {
+        flex-direction: column;
+        padding-right: 48px;
+        padding-left: 48px;
+        gap: 48px;
+      }
+
+      .about-mosaic {
+        width: 100%;
+        min-height: 480px;
+      }
+
+      .services-grid {
+        grid-template-rows: 400px 400px;
+      }
+
+      .contact-card {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        width: 100%;
+        max-width: 576px;
+        margin: 0 auto;
+      }
+
+      .contact-section {
+        min-height: auto;
+      }
+
+      .contact-section .contact-bg-img {
+        height: 500px;
+        position: relative;
+      }
+
+      .contact-section {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .contact-bg-wrap {
+        position: relative;
+        height: 400px;
+        overflow: hidden;
+      }
+
+      .contact-card-outer {
+        padding: 48px;
+        background: #1a1714;
+        display: flex;
+        justify-content: center;
+      }
+
+      .contact-left-text {
+        position: static;
+        margin: 0 48px 32px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 0 24px;
+      }
+
+      .nav-tabs {
+        display: none;
+      }
+
+      .hero-title {
+        font-size: 36px;
+        line-height: 48px;
+      }
+
+      .hero-subtitle {
+        font-size: 14px;
+      }
+
+      .about-cols {
+        padding: 0 24px;
+      }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 300px);
+      }
+
+      .footer {
+        flex-direction: column;
+        padding: 28px 24px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <nav class="navbar" aria-label="Main Navigation">
+      <img class="nav-logo" src="https://www.figma.com/api/mcp/asset/5a3bd9ca-a631-466b-ae8e-2834ae3454ce"
+        alt="Amorcons - Kiến tạo không gian chạm cảm xúc" />
+
+      <ul class="nav-tabs">
+        <li class="nav-item"><a class="nav-tab active" href="#" aria-current="page">Trang chủ</a></li>
+        <li class="nav-item"><a class="nav-tab" href="#services">Services Page</a></li>
+        <li class="nav-item"><a class="nav-tab" href="#about">About Us</a></li>
+        <li class="nav-item"><a class="nav-tab" href="#contact">Liên hệ</a></li>
+      </ul>
+
+      <div class="nav-right">
+        <button class="nav-btn" aria-label="Chọn ngôn ngữ: Tiếng Việt">
+          <img src="https://www.figma.com/api/mcp/asset/c236d5f4-5ec3-420b-854f-2898bedfa44a" alt=""
+            aria-hidden="true" />
+          VN
+        </button>
+        <button class="nav-btn" aria-label="Liên hệ điện thoại: (420) 511-8744 x729">
+          <img src="https://www.figma.com/api/mcp/asset/c8bbff4a-f8d6-4430-bf45-7c4032ecbac3" alt=""
+            aria-hidden="true" />
+          (420) 511-8744 x729
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- =========================================================
+         HERO
+    ========================================================= -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-bg">
+        <video class="hero-bg-img" src="./video/video_banner.mp4" autoplay muted loop playsinline
+          aria-hidden="true"></video>
+        <div class="hero-overlay-top"></div>
+      </div>
+
+      <div class="hero-text">
+        <h1 id="hero-title" class="hero-title">Kiến tạo không gian chạm cảm xúc</h1>
+        <p class="hero-subtitle">
+          Chúng tôi tạo nên không gian sống tinh tế, nơi từng chi tiết được cân nhắc và mỗi trải nghiệm đều mang đến
+          đẳng
+          cấp riêng biệt
+        </p>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         ABOUT
+    ========================================================= -->
+    <section class="about-wrap" id="about" style="background: url(./images/home/hero/bg-hero.png);">
+      <!-- Divider -->
+      <div class="divider-icon-block" aria-hidden="true">
+        <div class="divider-line-gold"></div>
+        <img class="divider-award" src="https://www.figma.com/api/mcp/asset/c5975cbf-c278-459c-a243-bc21ba2e2c25"
+          alt="" />
+      </div>
+
+      <!-- 2 cols -->
+      <div class="about-cols">
+        <!-- Left: image mosaic -->
+        <article class="about-mosaic">
+          <figure class="about-img-area">
+            <div class="about-backdrop" aria-hidden="true"></div>
+            <video src="./video/Minotti_2025_HP.mp4" class="about-main-img" autoplay loop muted playsinline></video>
+            <figcaption class="about-backdrop-two">
+              <p class="about-backdrop-text">We design spaces that unite function and beauty, creating
+                interiors and architecture that bring your lifestyle and vision to life</p>
+            </figcaption>
+          </figure>
+        </article>
+
+        <!-- Right: text -->
+        <div class="about-text">
+          <h2 class="about-headline">
+            <img class="srv-award" src="https://www.figma.com/api/mcp/asset/47347c27-a9ea-4444-aeee-44b34a44b0ac" alt=""
+              aria-hidden="true" />
+            <span> We help to bring your <em>dream home</em> to reality</span>
+          </h2>
+
+          <div class="timeline-wrap">
+            <!-- Bar trái -->
+            <div class="timeline-bar-outer" aria-hidden="true">
+              <div class="timeline-bar-gold"></div>
+            </div>
+
+            <ul class="timeline-items">
+              <!-- Item 01: active -->
+              <li class="timeline-item">
+                <div class="timeline-item-row">
+                  <span class="t-num">01</span>
+                  <span class="t-name">Westonstad</span>
+                </div>
+                <p class="t-desc">Lorem ipsum dolor sit amet consectetur. Rutrum pellentesque ridiculus non quisque
+                  aliquam mi eget.</p>
+              </li>
+
+              <!-- Item 02: inactive -->
+              <li class="timeline-item">
+                <div class="timeline-item-row">
+                  <span class="t-num">02</span>
+                  <span class="t-name muted">Westonstad</span>
+                </div>
+              </li>
+
+              <!-- Item 03: inactive -->
+              <li class="timeline-item">
+                <div class="timeline-item-row">
+                  <span class="t-num">03</span>
+                  <span class="t-name muted">Westonstad</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SERVICES
+    ========================================================= -->
+    <section class="services-wrap" id="services" aria-labelledby="services-title">
+      <div class="services-header">
+        <img class="srv-award" src="https://www.figma.com/api/mcp/asset/47347c27-a9ea-4444-aeee-44b34a44b0ac" alt=""
+          aria-hidden="true" />
+        <h2 id="services-title" class="srv-title">Dịch vụ</h2>
+        <p class="srv-sub">Lorem ipsum dolor sit amet consectetur. Nisl placerat porttitor eros est.</p>
+      </div>
+
+      <!-- 2×2 grid -->
+      <div class="services-grid">
+        <figure class="srv-cell">
+          <img src="./images/home/services/services-1.jpg" alt="Interior project 1" />
+          <div class="srv-cell-overlay" aria-hidden="true"></div>
+        </figure>
+        <figure class="srv-cell">
+          <img src="./images/home/services/services-2.jpg" alt="Interior project 2" />
+          <div class="srv-cell-overlay" aria-hidden="true"></div>
+        </figure>
+        <figure class="srv-cell">
+          <img src="./images/home/services/services-3.png" alt="Interior project 3" />
+          <div class="srv-cell-overlay" aria-hidden="true"></div>
+        </figure>
+        <figure class="srv-cell">
+          <img src="./images/home/services/services-4.png" alt="Interior project 4" />
+          <div class="srv-cell-overlay" aria-hidden="true"></div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         CTA MID
+    ========================================================= -->
+    <section class="cta-mid" aria-labelledby="cta-text">
+      <div class="cta-mid-top" aria-hidden="true">
+        <div class="divider-line-gold"></div>
+        <img class="divider-award" src="https://www.figma.com/api/mcp/asset/e9cdb30b-87a7-4339-8ef4-31d20eb039bb"
+          alt="" />
+      </div>
+      <p id="cta-text" class="cta-mid-text">We help to bring your <em>dream home</em> to reality</p>
+    </section>
+
+    <!-- =========================================================
+         CONTACT
+    ========================================================= -->
+    <section class="contact-us-section" id="contact-us" aria-labelledby="contact-title">
+      <div class="contact-us">
+        <div class="contact-us-container">
+          <div class="contact-left">
+            <div class="contact-subtitle"><span class="line" aria-hidden="true"></span> Contact us</div>
+            <h2 id="contact-title" class="contact-hero-title">We help to bring your <span>dream home</span><br>to
+              reality
+            </h2>
+            <p class="contact-desc">At Inteo, we create inspiring spaces that blend timeless design with<br>modern
+              innovation.</p>
+          </div>
+
+          <div class="contact-form-box">
+            <p class="form-pre-title">Liên lạc với chúng tôi</p>
+            <h3 class="contact-us-title">Contact us</h3>
+            <p class="form-post-title">Fill out the form below and we'll get back to<br>you with next steps within 24
+              hours.</p>
+
+            <div class="form-dots" aria-hidden="true">
+              <img src="./images/home/contact-us/dot.svg" alt="" />
+            </div>
+
+            <form class="contact-form" action="#" method="POST">
+              <div class="form-group">
+                <label for="name" class="sr-only">Tên*</label>
+                <input type="text" id="name" name="name" placeholder="Tên*" required />
+              </div>
+              <div class="form-group">
+                <label for="email" class="sr-only">Email*</label>
+                <input type="email" id="email" name="email" placeholder="Email*" required />
+              </div>
+              <div class="form-group">
+                <label for="phone" class="sr-only">Điện thoại</label>
+                <input type="tel" id="phone" name="phone" placeholder="Điện thoại" />
+              </div>
+              <div class="form-group">
+                <label for="company" class="sr-only">Công ty</label>
+                <input type="text" id="company" name="company" placeholder="Công ty" />
+              </div>
+              <div class="form-group">
+                <label for="message" class="sr-only">Lời nhắn</label>
+                <textarea id="message" name="message" placeholder="Lời nhắn" rows="4"></textarea>
+              </div>
+              <button type="submit" class="submit-btn">SUBMIT &rarr;</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================================================
+       FOOTER
+  ========================================================= -->
+  <footer class="footer-bar">
+    <div class="footer-bar-inner">
+      <!-- Logo -->
+      <div class="footer-logo">
+        <img src="./images/footer/logo-footer.svg" alt="AMORCONS" />
+      </div>
+
+      <!-- Social -->
+      <div class="footer-social">
+        <span class="footer-follow-text">Follow us</span>
+        <span class="footer-follow-line" aria-hidden="true"></span>
+        <ul class="footer-social-list">
+          <li>
+            <a href="#" class="footer-social-icon" aria-label="Follow us on Instagram">
+              <img src="./images/footer/intal.svg" alt="Instagram" />
+            </a>
+          </li>
+          <li>
+            <a href="#" class="footer-social-icon" aria-label="Follow us on Facebook">
+              <img src="./images/footer/facebook.svg" alt="Facebook" />
+            </a>
+          </li>
+          <li>
+            <a href="#" class="footer-social-icon" aria-label="Follow us on YouTube">
+              <img src="./images/footer/youtube.svg" alt="YouTube" />
+            </a>
+          </li>
+          <li>
+            <a href="#" class="footer-social-icon" aria-label="Follow us on X">
+              <img src="./images/footer/x.svg" alt="X" />
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
 </html>
