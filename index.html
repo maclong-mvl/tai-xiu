@@ -1064,20 +1064,103 @@
     }
 
     /* =====================================================================
-       RESPONSIVE
+       HAMBURGER & MOBILE MENU (hidden on desktop by default)
+    ===================================================================== */
+    .hamburger-btn {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 6px;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .hamburger-btn .bar {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+      transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s;
+      transform-origin: center;
+    }
+
+    .hamburger-btn.open .bar:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .hamburger-btn.open .bar:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+
+    .hamburger-btn.open .bar:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: var(--nav-h);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(24, 19, 16, 0.98);
+      z-index: 199;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      padding: 40px 24px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .mobile-menu.open {
+      display: flex;
+    }
+
+    .mobile-menu-link {
+      font-size: 20px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.65);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-align: center;
+      padding: 10px 0;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .mobile-menu-link:hover,
+    .mobile-menu-link.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    /* =====================================================================
+       RESPONSIVE — Large Tablet ≤1400px
     ===================================================================== */
     @media (max-width: 1400px) {
-      .contact-card {
-        left: auto;
-        right: 48px;
+      .contact-form-box {
         width: min(576px, 45vw);
+        margin-right: 3%;
       }
 
-      .contact-left-text {
-        max-width: 40vw;
+      .contact-left {
+        max-width: 42vw;
       }
     }
 
+    /* =====================================================================
+       RESPONSIVE — Tablet ≤1100px
+    ===================================================================== */
     @media (max-width: 1100px) {
       .hero-title {
         font-size: 52px;
@@ -1093,7 +1176,13 @@
 
       .about-mosaic {
         width: 100%;
+        flex: none;
         min-height: 480px;
+        height: 480px;
+      }
+
+      .about-main-img {
+        width: 100%;
       }
 
       .services-grid {
@@ -1117,86 +1206,207 @@
         height: 60px;
       }
 
-      .contact-card {
-        position: relative;
-        top: auto;
-        left: auto;
-        right: auto;
+      .contact-us-container {
+        flex-direction: column;
+        gap: 48px;
+        align-items: stretch;
+      }
+
+      .contact-left {
+        max-width: 100%;
+        padding-left: 0;
+      }
+
+      .contact-form-box {
         width: 100%;
         max-width: 576px;
         margin: 0 auto;
       }
-
-      .contact-section {
-        min-height: auto;
-      }
-
-      .contact-section .contact-bg-img {
-        height: 500px;
-        position: relative;
-      }
-
-      .contact-section {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .contact-bg-wrap {
-        position: relative;
-        height: 400px;
-        overflow: hidden;
-      }
-
-      .contact-card-outer {
-        padding: 48px;
-        background: #1a1714;
-        display: flex;
-        justify-content: center;
-      }
-
-      .contact-left-text {
-        position: static;
-        margin: 0 48px 32px;
-      }
     }
 
+    /* =====================================================================
+       RESPONSIVE — Mobile ≤768px
+    ===================================================================== */
     @media (max-width: 768px) {
+
+      /* --- Navbar (Figma: h-[80px] px-[16px] gap-[21px]) --- */
       .navbar {
-        padding: 0 24px;
+        padding: 0 16px;
+        height: var(--nav-h); /* stays 80px — matches Figma mobile spec */
+        justify-content: space-between;
+        gap: 21px;
       }
 
       .nav-tabs {
         display: none;
       }
 
+      .nav-btn-label {
+        display: none;
+      }
+
+      .nav-btn {
+        padding: 8px;
+        gap: 0;
+      }
+
+      .lang-btn {
+        display: none;
+      }
+
+      .hamburger-btn {
+        display: flex;
+      }
+
+      /* --- Hero (Figma: text-[32px] leading-[45px] tracking-[-0.64px]) --- */
+      .hero {
+        height: 100svh;
+        min-height: 600px;
+      }
+
+      .hero-text {
+        padding: 0 16px;
+        gap: 24px; /* Figma: gap-[24px] */
+      }
+
       .hero-title {
-        font-size: 36px;
-        line-height: 48px;
+        font-size: 32px;        /* Figma: text-[32px] */
+        line-height: 45px;      /* Figma: leading-[45px] */
+        letter-spacing: -0.64px;/* Figma: tracking-[-0.64px] */
       }
 
       .hero-subtitle {
         font-size: 14px;
+        line-height: 24px;      /* Figma: leading-[24px] */
+      }
+
+      /* --- About (Figma: py-[40px] px-[16px] gap-[40px]) --- */
+      .about-wrap {
+        padding: 40px 0;        /* Figma: py-[40px] */
+      }
+
+      .divider-icon-block {
+        margin-bottom: 0;
+        gap: 20px;              /* Figma: gap-[20px] */
       }
 
       .about-cols {
-        padding: 0 24px;
+        flex-direction: column;
+        padding: 0 16px;        /* Figma: px-[16px] */
+        gap: 40px;
+      }
+
+      .about-mosaic {
+        flex: none;
+        width: 100%;
+        min-height: 360px;
+        height: 360px;
+      }
+
+      .about-img-area {
+        height: 100%;
+      }
+
+      .about-main-img {
+        width: 100%;
+      }
+
+      .about-backdrop-two {
+        padding: 20px 16px;
+      }
+
+      .about-backdrop-text {
+        font-size: 12px;        /* Figma: text-[12px] */
+        line-height: 20px;      /* Figma: leading-[20px] */
+        color: rgba(255, 255, 255, 0.34); /* Figma: text-[rgba(255,255,255,0.34)] */
+      }
+
+      /* Figma: gap-[24px] between headline and timeline */
+      .about-text {
+        gap: 24px;
+      }
+
+      /* Figma: text-[20px] leading-[32px] tracking-[-0.4px] color #b18151 */
+      .about-headline {
+        font-size: 20px;
+        line-height: 32px;
+        letter-spacing: -0.4px;
+      }
+
+      /* Figma: gap-[32px] (same as desktop, keep) */
+      .timeline-wrap {
+        gap: 32px;
+      }
+
+      .timeline-items {
+        gap: 24px;
+      }
+
+      /* Figma: text-[12px] leading-[40px] */
+      .t-name {
+        font-size: 12px;
+        line-height: normal;
+      }
+
+      /* Figma: text-[12px] */
+      .t-num {
+        font-size: 12px;
+      }
+
+      /* --- Services (Figma: gap-[12px] px-[16px] text-[20px]) --- */
+      .services-header {
+        padding: 40px 16px;     /* Figma: py-[40px] px-[16px] */
+        gap: 12px;              /* Figma: gap-[12px] */
+      }
+
+      /* Figma: text-[20px] leading-[32px] tracking-[-0.4px] */
+      .srv-title {
+        font-size: 20px;
+        line-height: 32px;
+        letter-spacing: -0.4px;
+        margin-top: 0;
+      }
+
+      /* Figma: text-[12px] color #afafaf */
+      .srv-sub {
+        font-size: 12px;
+        color: #afafaf;
       }
 
       .services-grid {
         grid-template-columns: 1fr;
-        grid-template-rows: repeat(4, 350px);
+        grid-template-rows: repeat(4, 300px);
+        gap: 1px;               /* Figma: gap-px */
       }
 
+      /* Always show overlay on mobile (no hover on touch) */
       .srv-cell-overlay {
-        padding: 24px;
+        opacity: 1;
+        padding: 20px 16px;
+      }
+
+      .srv-cell-content {
+        transform: translateY(0);
+      }
+
+      /* Prevent scale & video-swap on mobile */
+      .srv-cell:hover .srv-cell-bg {
+        transform: none;
+        opacity: 1;
+      }
+
+      .srv-cell:hover .srv-cell-video {
+        opacity: 0;
       }
 
       .srv-cell-title {
-        font-size: 22px;
+        font-size: 20px;
+        line-height: 28px;
       }
 
       .srv-cell-desc {
-        font-size: 13px;
+        font-size: 12px;
+        line-height: 20px;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         line-clamp: 3;
@@ -1205,14 +1415,102 @@
       }
 
       .srv-cell-icon {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
       }
 
-      .footer {
+      /* --- CTA Mid (Figma: gap-[12px] px-[16px] text-[20px] leading-[32px]) --- */
+      .cta-mid {
+        padding: 40px 16px;     /* Figma: py-[40px] px-[16px] */
+        gap: 12px;              /* Figma: gap-[12px] */
+      }
+
+      /* Figma: text-[20px] leading-[32px] tracking-[-0.4px] */
+      .cta-mid-text {
+        font-size: 20px;
+        line-height: 32px;
+        letter-spacing: -0.4px;
+      }
+
+      /* --- Contact (Figma: h-[878px] abs form at left-[10px] top-[31px] w-[356px]) --- */
+      .contact-us {
+        padding: 40px 16px;
+        min-height: auto;
+        align-items: stretch;
+      }
+
+      .contact-us-container {
         flex-direction: column;
-        padding: 28px 24px;
+        gap: 32px;
+        align-items: stretch;
+      }
+
+      .contact-left {
+        max-width: 100%;
+        padding-left: 0;
+      }
+
+      .contact-hero-title {
+        font-size: 22px;
+        line-height: 28px;
+      }
+
+      /* Figma: pt-[12px] px-[16px] pb-[24px] gap-[12px] backdrop-blur */
+      .contact-form-box {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 12px 16px 24px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      /* Figma: text-[24px] leading-[38.991px] tracking-[-0.426px] */
+      .contact-form-box .contact-us-title {
+        font-size: 24px;
+        line-height: 38.991px;
+        letter-spacing: -0.426px;
+      }
+
+      /* Figma: text-[12px] leading-[13.633px] tracking-[0.3408px] */
+      .form-pre-title,
+      .form-post-title {
+        font-size: 12px;
+        line-height: 13.633px;
+        letter-spacing: 0.34px;
+      }
+
+      /* --- Footer --- */
+      .footer-bar-inner {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 24px 16px;
         text-align: center;
+      }
+
+      .footer-social {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+    }
+
+    /* =====================================================================
+       RESPONSIVE — Small Mobile ≤480px
+    ===================================================================== */
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 28px;
+        line-height: 40px;
+        letter-spacing: -0.56px;
+      }
+
+      .services-grid {
+        grid-template-rows: repeat(4, 260px);
+      }
+
+      .contact-form-box {
+        padding: 12px 12px 20px;
       }
     }
   </style>
@@ -1233,19 +1531,32 @@
       </ul>
 
       <div class="nav-right">
-        <a href="#" class="nav-btn" aria-label="Chọn ngôn ngữ: Tiếng Việt">
+        <a href="#" class="nav-btn lang-btn" aria-label="Chọn ngôn ngữ: Tiếng Việt">
           <img src="https://www.figma.com/api/mcp/asset/c236d5f4-5ec3-420b-854f-2898bedfa44a" alt=""
             aria-hidden="true" />
-          VN
+          <span class="nav-btn-label">VN</span>
         </a>
         <a href="tel:4205118744" class="nav-btn" aria-label="Liên hệ điện thoại: (420) 511-8744 x729">
           <img src="https://www.figma.com/api/mcp/asset/c8bbff4a-f8d6-4430-bf45-7c4032ecbac3" alt=""
             aria-hidden="true" />
-          (420) 511-8744 x729
+          <span class="nav-btn-label">(420) 511-8744 x729</span>
         </a>
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu điều hướng" aria-expanded="false" aria-controls="mobileMenu">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
       </div>
     </nav>
   </header>
+
+  <!-- Mobile Navigation Menu -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+    <a class="mobile-menu-link active" href="#" onclick="closeMobileMenu()">Trang chủ</a>
+    <a class="mobile-menu-link" href="#services" onclick="closeMobileMenu()">Services Page</a>
+    <a class="mobile-menu-link" href="#about" onclick="closeMobileMenu()">About Us</a>
+    <a class="mobile-menu-link" href="#contact-us" onclick="closeMobileMenu()">Liên hệ</a>
+  </div>
 
   <main>
     <!-- =========================================================
@@ -1595,6 +1906,37 @@
     // Handle Mosaic Text Transition
     if (mainText) {
       mainText.style.transition = 'opacity 0.3s ease';
+    }
+
+    // ─── Hamburger Menu Toggle ────────────────────────────────────────
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    function closeMobileMenu() {
+      if (!hamburgerBtn || !mobileMenu) return;
+      hamburgerBtn.classList.remove('open');
+      mobileMenu.classList.remove('open');
+      hamburgerBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    if (hamburgerBtn && mobileMenu) {
+      hamburgerBtn.addEventListener('click', () => {
+        const isOpen = mobileMenu.classList.toggle('open');
+        hamburgerBtn.classList.toggle('open');
+        hamburgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+      });
+
+      // Close when clicking the backdrop (outside the links)
+      mobileMenu.addEventListener('click', (e) => {
+        if (e.target === mobileMenu) closeMobileMenu();
+      });
+
+      // Close on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMobileMenu();
+      });
     }
   </script>
 </body>
